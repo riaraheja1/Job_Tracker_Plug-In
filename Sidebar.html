@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 13px; padding: 4px 12px 12px; }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input[type=text], textarea {
+      width: 100%; box-sizing: border-box; padding: 6px; margin-top: 4px;
+      font-family: inherit; font-size: 13px;
+    }
+    textarea { height: 70px; resize: vertical; }
+    .hint { color: #666; font-size: 11px; margin-top: 2px; }
+    details { margin-top: 14px; }
+    summary { cursor: pointer; color: #1a73e8; font-size: 12px; }
+    button {
+      margin-top: 18px; width: 100%; padding: 10px; font-size: 13px;
+      background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer;
+    }
+    button:disabled { background: #999; }
+    #status { margin-top: 12px; font-size: 12px; }
+    .error { color: #c62828; }
+    .success { color: #2e7d32; }
+  </style>
+</head>
+<body>
+
+  <label>Job posting URL</label>
+  <input type="text" id="jobUrl" placeholder="https://...">
+  <div class="hint">Company, Role, Location, Salary, Type, and Platform Found are filled in automatically. Status/Interview/Decision are set to their defaults.</div>
+
+  <details>
+    <summary>Fetch failed? Paste the job description text instead</summary>
+    <textarea id="jobText" placeholder="Paste the job description here"></textarea>
+  </details>
+
+  <button id="submitBtn" onclick="submitForm()">Add to Tracker</button>
+  <div id="status"></div>
+
+  <script>
+    function submitForm() {
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+      btn.disabled = true;
+      status.className = '';
+      status.textContent = 'Reading job posting and filling row...';
+
+      const form = {
+        jobUrl: document.getElementById('jobUrl').value.trim(),
+        jobText: document.getElementById('jobText').value.trim()
+      };
+
+      google.script.run
+        .withSuccessHandler(function (msg) {
+          status.className = 'success';
+          status.textContent = msg;
+          btn.disabled = false;
+          document.getElementById('jobUrl').value = '';
+          document.getElementById('jobText').value = '';
+        })
+        .withFailureHandler(function (err) {
+          status.className = 'error';
+          status.textContent = err.message || err;
+          btn.disabled = false;
+        })
+        .processJobEntry(form);
+    }
+  </script>
+</body>
+</html>
